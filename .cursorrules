@@ -1,0 +1,11 @@
+# Pomodorrr
+
+Pomodoro timer as a GNOME Shell extension (top bar).
+
+## Layout
+
+- **extension/** – Extension source. metadata.json (uuid, shell-version), extension.js (panel indicator, timer, states), icons/ (tomato-green.svg, tomato-red.svg), stylesheet.css.
+- **install.sh** – Installs extension to ~/.local/share/gnome-shell/extensions/pomodorrr@local/.
+- **README.md** – Features, build/run, requirements.
+- **TODO.md** – Pending ideas.
+- **.cursorrules** – This file.
