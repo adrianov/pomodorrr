@@ -4,7 +4,7 @@ Pomodoro timer that runs in the GNOME top bar (status area).
 
 ## Features
 
-- **Idle**: Goal emoji (🎯), label "0 / N" (N = completed today). Click to start a work session.
+- **Idle**: Goal emoji (🎯), label "0 / N" (N = completed today). Click to open menu and choose Work, Short/Long break, or Exit.
 - **Work**: Tomato emoji (🍅), label "remaining / N" (e.g. 25 / 0, 20 / 1).
 - **Short/Long break**: Palm emoji (🌴), label "break min / N". Break runs in background; then back to idle (goal emoji, 0 / N).
 - **Menu**: Idle, Work (25 min), Short break (5 min), Long break (15 min), Completed today: N, Exit.
@@ -30,7 +30,7 @@ Pomodoro timer that runs in the GNOME top bar (status area).
 
    If you get **"Extension does not exist"**: you are in your normal session and GNOME Shell has not been restarted since install. Do step 2 first, then run this again.
 
-4. The tomato icon appears in the top bar. Click it once when idle to start a 25-minute work session.
+4. The indicator appears in the top bar. Click it to open the menu and choose Idle, Work (25 min), Short break (5 min), Long break (15 min), or Exit.
 
 ## Requirements
 

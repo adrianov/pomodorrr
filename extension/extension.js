@@ -1,7 +1,7 @@
 /**
  * Pomodorrr – Pomodoro timer in the GNOME top bar.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
- * Left-click when idle starts work; any other click opens the menu.
+ * Any click opens the menu; user chooses Idle, Work, Short/Long break, or Exit.
  */
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -60,21 +60,12 @@ export default class PomodorrrExtension extends Extension {
         // Build menu items
         this._buildMenu();
         
-        // Rebuild menu when it opens to refresh dynamic content
+        /** Rebuild menu when it opens so dynamic content (e.g. completed count) is fresh. */
         if (this._indicator.menu) {
             this._indicator.menu.connect('open-state-changed', (menu, open) => {
                 if (open) this._buildMenu();
             });
         }
-        
-        // Handle left-click when idle to start work
-        this._indicator.connect('button-press-event', (actor, event) => {
-            if (event.get_button() === Clutter.BUTTON_PRIMARY && this._state === 'idle') {
-                this._onClick();
-                return Clutter.EVENT_STOP;
-            }
-            return Clutter.EVENT_PROPAGATE;
-        });
 
         Main.panel.addToStatusArea(this.uuid, this._indicator);
         this._render();
@@ -93,10 +84,10 @@ export default class PomodorrrExtension extends Extension {
     }
 
     _getStatePath() {
-        return `${this.metadata.path}/state`;
+        return `${GLib.get_user_config_dir()}/pomodorrr/state`;
     }
 
-    /** Load last-save date and completed-today count from extension dir. */
+    /** Load last-save date and completed-today count from user config dir. */
     _loadState() {
         try {
             const [ok, bytes] = GLib.file_get_contents(this._getStatePath());
@@ -110,11 +101,14 @@ export default class PomodorrrExtension extends Extension {
         } catch (e) {}
     }
 
-    /** Persist date and completed-today (format: "YYYY-MM-DD N\n"). */
+    /** Persist date and completed-today (format: "YYYY-MM-DD N\n") under ~/.config/pomodorrr/. */
     _saveState() {
         if (this._lastDate === null) return;
         try {
-            GLib.file_set_contents(this._getStatePath(), `${this._lastDate} ${this._completedToday}\n`);
+            const path = this._getStatePath();
+            const dir = GLib.path_get_dirname(path);
+            GLib.mkdir_with_parents(dir, 0o700);
+            GLib.file_set_contents(path, `${this._lastDate} ${this._completedToday}\n`);
         } catch (e) {}
     }
 
@@ -170,15 +164,6 @@ export default class PomodorrrExtension extends Extension {
         this._indicator.menu.addAction('Exit', () => {
             this._indicator.hide();
         });
-    }
-
-    /** Start a work session (only when idle). */
-    _onClick() {
-        if (this._state !== 'idle') return;
-        this._state = 'work';
-        this._workRemainMin = WORK_DURATION_MIN;
-        this._startTick();
-        this._render();
     }
 
     /** Schedule next tick: every WORK_TICK_MIN for work, every 1 min for break. */
