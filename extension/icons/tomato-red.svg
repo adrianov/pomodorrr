@@ -1,4 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
-  <ellipse cx="11" cy="12" rx="8" ry="9" fill="#c62828"/>
-  <path d="M11 2 L12 5 L11 6 L10 5 Z" fill="#2d7d32"/>
+  <defs>
+    <linearGradient id="red-body" x1="0.35" y1="0.2" x2="0.7" y2="0.95">
+      <stop offset="0%" stop-color="#e57373"/>
+      <stop offset="40%" stop-color="#c62828"/>
+      <stop offset="100%" stop-color="#8e0000"/>
+    </linearGradient>
+    <linearGradient id="red-shine" x1="0.25" y1="0.35" x2="0.55" y2="0.6">
+      <stop offset="0%" stop-color="#ffcdd2"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+  </defs>
+  <path d="M11 4.2 C6 4.5 3 8 3 12.5 C3 17 6.5 20 11 20 C15.5 20 19 17 19 12.5 C19 8 16 4.5 11 4.2 Z" fill="url(#red-body)"/>
+  <ellipse cx="8" cy="10" rx="2.5" ry="3" fill="url(#red-shine)" opacity="0.85"/>
+  <path d="M10.2 3.8 L10.8 2 L11.8 2.2 L11.2 4 L11 4.2 Z" fill="#5d4037"/>
+  <path d="M9.5 4.2 Q11 3.2 12.5 4.2 Q11.8 5.5 11 5.8 Q10.2 5.5 9.5 4.2 Z" fill="#2e7d32"/>
+  <path d="M10 4.5 L10.5 4 L11.5 4.2 L11 4.8 Z" fill="#1b5e20"/>
 </svg>

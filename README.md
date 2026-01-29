@@ -4,10 +4,10 @@ Pomodoro timer that runs in the GNOME top bar (status area).
 
 ## Features
 
-- **Idle**: Green tomato icon. Click to start a work session.
-- **Work**: Red tomato with remaining minutes (25 → 20 → 15 → 10 → 5, every 5 minutes). One click starts the session.
-- **Short break**: Green tomato with countdown (5 minutes). After 1 or 2 work sessions.
-- **Long break**: Green tomato with countdown (15 minutes). After 3 work sessions, then back to idle.
+- **Idle**: Goal emoji (🎯), label "0 / N" (N = completed today). Click to start a work session.
+- **Work**: Tomato emoji (🍅), label "remaining / N" (e.g. 25 / 0, 20 / 1).
+- **Short/Long break**: Palm emoji (🌴), label "break min / N". Break runs in background; then back to idle (goal emoji, 0 / N).
+- **Menu**: Idle, Work (25 min), Short break (5 min), Long break (15 min), Completed today: N, Exit.
 - Timer runs in the panel; no extra windows.
 
 ## Build and run
