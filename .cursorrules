@@ -6,6 +6,9 @@ Pomodoro timer as a GNOME Shell extension (top bar).
 
 - **extension/** – Extension source. metadata.json (uuid, shell-version), extension.js (panel indicator, timer, emoji icons), stylesheet.css.
 - **install.sh** – Installs extension to ~/.local/share/gnome-shell/extensions/pomodorrr@local/.
+- **lint.sh** – Runs ESLint (finds npm in nvm/fnm/common paths).
+- **package.json** – npm scripts (lint); devDependency: eslint.
+- **eslint.config.js** – ESLint flat config for extension/**/*.js (ES2022, global).
 - **README.md** – Features, build/run, requirements.
 - **TODO.md** – Pending ideas.
 - **.cursorrules** – This file.
