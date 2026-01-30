@@ -1,0 +1,10 @@
+{
+  "name": "pomodorrr",
+  "private": true,
+  "scripts": {
+    "lint": "eslint extension/extension.js"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}
