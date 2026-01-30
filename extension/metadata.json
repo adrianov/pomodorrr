@@ -4,5 +4,6 @@
   "description": "Pomodoro timer in the top bar: green tomato idle, red for work (25 min), green for short (5 min) or long (15 min) break.",
   "shell-version": ["45", "46"],
   "url": "https://github.com/crexus/pomodorrr",
-  "version-name": "1.0"
+  "version-name": "1.1",
+  "session-modes": ["user"]
 }
