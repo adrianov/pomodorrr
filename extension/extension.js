@@ -21,6 +21,8 @@ const LONG_BREAK_MIN = 15;
 const SESSIONS_BEFORE_LONG = 3;
 /** Break countdown tick interval (minutes); display 15 → 10 → 5 → 0. */
 const BREAK_TICK_MIN = 5;
+/** Max goal title length in panel; longer titles get truncated with ellipsis. */
+const PANEL_GOAL_TITLE_MAX = 40;
 
 const EMOJI_GOAL = '🎯';
 const EMOJI_TOMATO = '🍅';
@@ -192,6 +194,14 @@ export default class PomodorrrExtension extends Extension {
                     const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
                     this._goals.push({ id, text, completed: false, completedDate: null });
                     this._saveGoals();
+                    const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
+                    if (!otherWorkActive) {
+                        this._activeGoalId = id;
+                        this._state = 'work';
+                        this._workRemainMin = WORK_DURATION_MIN;
+                        this._startTick();
+                        this._render();
+                    }
                     this._buildMenu();
                 }
                 dialog.close(global.get_current_time());
@@ -322,11 +332,19 @@ export default class PomodorrrExtension extends Extension {
         }
     }
 
+    /** Play a system theme sound (canberra event id); no-op if canberra not available. */
+    _playSound(eventId) {
+        try {
+            GLib.spawn_async(null, ['canberra-gtk-play', '-i', eventId], null, GLib.SpawnFlags.SEARCH_PATH_FROM_ENVP, null);
+        } catch {}
+    }
+
     /** One tick: decrement work or break time; on end, switch state and reschedule or stop. */
     _tick() {
         if (this._state === 'work') {
             this._workRemainMin -= WORK_TICK_MIN;
             if (this._workRemainMin <= 0) {
+                this._playSound('complete');
                 this._workDone += 1;
                 this._completedToday += 1;
                 if (this._activeGoalId) {
@@ -343,6 +361,7 @@ export default class PomodorrrExtension extends Extension {
         } else {
             this._breakRemainMin -= BREAK_TICK_MIN;
             if (this._breakRemainMin <= 0) {
+                this._playSound('bell');
                 if (this._state === 'long_break') this._workDone = 0;
                 this._state = 'idle';
                 this._clearTimer();
@@ -368,7 +387,7 @@ export default class PomodorrrExtension extends Extension {
         if (this._state === 'work') timePart = `${this._workRemainMin} / ${n}`;
         else if (this._state === 'short_break' || this._state === 'long_break') timePart = `${this._breakRemainMin} / ${n}`;
         const goal = this._goals.find(g => g.id === this._activeGoalId);
-        const title = goal ? (goal.text.length > 12 ? goal.text.slice(0, 11) + '…' : goal.text) : '';
+        const title = goal ? (goal.text.length > PANEL_GOAL_TITLE_MAX ? goal.text.slice(0, PANEL_GOAL_TITLE_MAX - 1) + '…' : goal.text) : '';
         return title ? `${title} · ${timePart}` : timePart;
     }
 
