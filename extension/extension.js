@@ -232,7 +232,7 @@ export default class PomodorrrExtension extends Extension {
         if (!this._indicator || !this._indicator.menu) return;
         this._indicator.menu.removeAll();
 
-        const workSub = new PopupMenu.PopupSubMenuMenuItem('Work (25 min)', false);
+        const workSub = new PopupMenu.PopupSubMenuMenuItem('Work (25 min)', true);
         workSub.menu.addAction('New goal...', () => this._showAddGoalDialog());
 
         const today = this._getToday();
