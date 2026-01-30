@@ -1,47 +1,82 @@
 # Pomodorrr
 
-Pomodoro timer that runs in the GNOME top bar (status area).
+Pomodoro timer in the GNOME Shell top bar (status area).
+
+## The Pomodoro technique
+
+The method was created by Francesco Cirillo in the late 1980s. As a student, he struggled to focus; using a tomato-shaped kitchen timer (*pomodoro* in Italian) for short work blocks helped him stay on task. He later formalized the approach.
+
+**How to use:** Pick one task, set a timer for 25 minutes, and work without switching to other work. When the timer rings, stop and take a short break (about 5 minutes). After every three or four such work sessions, take a longer break (about 15 minutes). Each 25-minute block is one “pomodoro.”
+
+**Why it works:** Fixed time blocks reduce the urge to procrastinate and make starting easier. Regular breaks reduce mental fatigue and help you sustain focus across the day. The clear start and end of each pomodoro create a simple ritual, and the timer removes the need to watch the clock yourself.
 
 ## Features
 
-- **Work (25 min)** (first menu item, submenu): **New goal…** opens a dialog to add a goal. Today’s goals listed with a check mark (✓) on the left for the active goal and tomato count (🍅) on the right. Click a goal to set it as active and start a 25 min work session; clicking the current goal marks it uncomplete again. Pomodoros count toward that goal. Work (25 min) submenu is expanded when the menu opens. **Mark current goal complete** (when a goal is active) marks it done; completed goals are removed tomorrow. Status bar shows active goal title (truncated) next to the timer.
-- **Idle**: Goal emoji (🎯). **Work**: Tomato (🍅). **Short/Long break**: Palm (🌴). Label shows “minutes / N” or “goal · minutes / N” when a goal is active.
-- **Menu**: Work (25 min) (submenu), Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit.
-- State and goals stored under `~/.config/pomodorrr/` (state, goals.json).
+### Work (25 min)
+
+First menu item; submenu opens expanded.
+
+- **New goal…** — Add a goal. If you're idle (or not in work with another goal), the new goal becomes active and a 25 min work session starts.
+- Goals list shows ✓ for the active goal and 🍅 count per goal.
+- Click a goal to make it active and start work; click the active goal again to mark it incomplete.
+- **Mark current goal complete** and **Delete current goal** appear when a goal is active.
+- Completed goals are cleared the next day.
+- The panel shows the active goal title (truncated) and the timer.
+
+### Panel icon and label
+
+- **Idle:** 🎯  
+- **Work:** 🍅  
+- **Short/long break:** 🌴  
+
+Label format: `minutes / N` or `goal · minutes / N` (N = completed pomodoros today).
+
+### Menu
+
+Work (25 min) submenu, Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit.
+
+### Sounds
+
+- End of work: system "complete" sound.
+- End of break: "bell" (via `canberra-gtk-play` when available).
+
+### Storage
+
+`~/.config/pomodorrr/` (state file and goals.json).
 
 ## Build and run
 
-1. **Install** (copy extension into GNOME Shell extensions dir):
+1. **Install** — Copy the extension into the GNOME Shell extensions directory:
 
    ```sh
    ./install.sh
    ```
 
-2. **Restart GNOME Shell** so it discovers the new extension (it only reads the extension list at startup):
+2. **Restart GNOME Shell** so it picks up the extension (extensions are discovered only at startup):
    - **Wayland**: Log out and log back in.
    - **X11**: Alt+F2, type `r`, Enter.
 
-3. **Enable** the extension (in any terminal on your desktop, e.g. Cursor or GNOME Terminal):
+3. **Enable** the extension (from a terminal on your desktop):
 
    ```sh
    gnome-extensions enable pomodorrr@local
    ```
 
-   If you get **"Extension does not exist"**: you are in your normal session and GNOME Shell has not been restarted since install. Do step 2 first, then run this again.
+   If you see **"Extension does not exist"**, GNOME Shell has not been restarted since install. Do step 2, then run the enable command again.
 
-   If the extension **was disabled due to an error** (e.g. after a crash): restart GNOME Shell (step 2) so it loads the updated code, then run `gnome-extensions enable pomodorrr@local` again.
+   If the extension **was disabled due to an error** (e.g. after a crash), restart GNOME Shell (step 2) so it loads the updated code, then run `gnome-extensions enable pomodorrr@local` again.
 
-4. The indicator appears in the top bar.
+4. The indicator appears in the top bar. Click it to open the menu.
 
-**If the extension still doesn’t run:** GNOME Shell caches extension code for the whole session. After a crash it keeps using the old code until the session ends. You must **log out and log back in** (Wayland) or **restart the shell** (X11: Alt+F2 → `r` → Enter). After that, if the extension is in the enabled list, it will load the new code from disk and start on login. No need to run `gnome-extensions enable` again unless it’s disabled. Click it to open the menu and choose Idle, Work (25 min), Short break (5 min), Long break (15 min), or Exit.
+**If the extension still doesn't run:** GNOME Shell caches extension code for the session. After a crash it keeps using the old code until the session ends. **Log out and log back in** (Wayland) or **restart the shell** (X11: Alt+F2 → `r` → Enter). After that, if the extension is enabled, it loads the new code from disk on login. No need to run `gnome-extensions enable` again unless it was disabled.
 
 ## Requirements
 
 - GNOME Shell 45 or 46 (tested on 46).
 
-## Development / nested session
+## Development (nested session)
 
-To test without logging out (Wayland):
+To test without logging out on Wayland:
 
 ```sh
 dbus-run-session gnome-shell --devkit --wayland
@@ -53,7 +88,7 @@ In the nested session, open a terminal and run:
 gnome-extensions enable pomodorrr@local
 ```
 
-After code changes, disable and re-enable the extension, or restart the nested shell.
+After code changes, disable and re-enable the extension or restart the nested shell.
 
 ## Lint
 
@@ -67,6 +102,6 @@ Or: `npm install && npm run lint`
 
 ## Project layout
 
-- `extension/` – GNOME Shell extension (metadata.json, extension.js, icons, stylesheet).
-- `install.sh` – Copies extension to `~/.local/share/gnome-shell/extensions/pomodorrr@local/`.
-- `README.md`, `TODO.md`, `.cursorrules` – Docs and project rules.
+- `extension/` – GNOME Shell extension (metadata.json, extension.js, emoji icons, stylesheet.css).
+- `install.sh` – Installs the extension to `~/.local/share/gnome-shell/extensions/pomodorrr@local/`.
+- `README.md`, `TODO.md`, `.cursorrules` – Documentation and project rules.
