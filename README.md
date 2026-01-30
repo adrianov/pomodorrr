@@ -12,7 +12,7 @@ The method was created by Francesco Cirillo in the late 1980s. As a student, he 
 
 ## Features
 
-### Work (25 min)
+### Work or Study (25 min)
 
 First menu item; submenu opens expanded.
 
@@ -26,14 +26,14 @@ First menu item; submenu opens expanded.
 ### Panel icon and label
 
 - **Idle:** 🎯  
-- **Work:** 🍅  
+- **Work or Study:** 🍅  
 - **Short/long break:** 🌴  
 
 Label format: `minutes / N` or `goal · minutes / N` (N = completed pomodoros today).
 
 ### Menu
 
-Work (25 min) submenu, Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit.
+Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit.
 
 ### Sounds
 

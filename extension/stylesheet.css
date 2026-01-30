@@ -16,3 +16,9 @@
 .pomodorrr-dialog-label {
   margin-bottom: 4px;
 }
+
+/* Informational menu item (e.g. Completed today): readable, not grayed out. */
+.pomodorrr-info {
+  font-size: 0.9em;
+  color: rgba(128, 128, 128, 0.9);
+}

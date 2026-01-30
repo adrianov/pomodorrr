@@ -1,7 +1,7 @@
 /**
  * Pomodorrr – Pomodoro timer in the GNOME top bar with goals.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
- * Menu: Work (25 min) submenu (uncollapsed; New goal…, today’s goals; check = active; click goal = start 25 min, click current = uncomplete), Idle/breaks/Exit.
+ * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = active; click goal = start 25 min, click current = uncomplete), Idle/breaks/Exit.
  */
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -235,15 +235,17 @@ export default class PomodorrrExtension extends Extension {
         dialog.open(global.get_current_time());
     }
 
-    /** Populate menu: Work (submenu with New goal + goals; check = active), then Idle/breaks/Exit. */
+    /** Populate menu: Work or Study (submenu with New goal + goals; check = active), then Idle/breaks/Exit. */
     _buildMenu() {
         this._resetCompletedIfNewDay();
         this._pruneCompletedGoals();
         if (!this._indicator || !this._indicator.menu) return;
         this._indicator.menu.removeAll();
 
-        const workSub = new PopupMenu.PopupSubMenuMenuItem('Work (25 min)', true);
-        workSub.menu.addAction('New goal...', () => this._showAddGoalDialog());
+        const workSub = new PopupMenu.PopupSubMenuMenuItem('Work or Study (25 min)', true);
+        const workIcon = new St.Icon({ icon_name: 'document-edit-symbolic', style_class: 'popup-menu-icon' });
+        workSub.actor.insert_child_at_index(workIcon, 0);
+        workSub.menu.addAction('New goal...', () => this._showAddGoalDialog(), 'list-add-symbolic');
 
         const today = this._getToday();
         for (const goal of this._goals) {
@@ -280,8 +282,8 @@ export default class PomodorrrExtension extends Extension {
                     this._saveGoals();
                     this._buildMenu();
                 }
-            });
-            workSub.menu.addAction('Delete current goal', () => this._showDeleteGoalConfirm());
+            }, 'emblem-ok-symbolic');
+            workSub.menu.addAction('Delete current goal', () => this._showDeleteGoalConfirm(), 'edit-delete-symbolic');
         }
 
         this._indicator.menu.addMenuItem(workSub);
@@ -291,29 +293,29 @@ export default class PomodorrrExtension extends Extension {
             this._clearTimer();
             this._state = 'idle';
             this._render();
-        });
+        }, 'media-playback-pause-symbolic');
 
         this._indicator.menu.addAction('Short break (5 min)', () => {
             this._state = 'short_break';
             this._breakRemainMin = SHORT_BREAK_MIN;
             this._startTick();
             this._render();
-        });
+        }, 'alarm-symbolic');
 
         this._indicator.menu.addAction('Long break (15 min)', () => {
             this._state = 'long_break';
             this._breakRemainMin = LONG_BREAK_MIN;
             this._startTick();
             this._render();
-        });
+        }, 'weather-clear-symbolic');
 
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         const completedItem = new PopupMenu.PopupMenuItem(`Completed today: ${this._completedToday}`);
-        completedItem.setSensitive(false);
+        completedItem.actor.add_style_class_name('pomodorrr-info');
         this._indicator.menu.addMenuItem(completedItem);
 
-        this._indicator.menu.addAction('Exit', () => this._indicator.hide());
+        this._indicator.menu.addAction('Exit', () => this._indicator.hide(), 'application-exit-symbolic');
     }
 
     /** Schedule next tick: every WORK_TICK_MIN for work, every BREAK_TICK_MIN for break (15→10→5→0). */
