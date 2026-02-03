@@ -211,9 +211,9 @@ export default class PomodorrrExtension extends Extension {
         if (entry.grab_key_focus) entry.grab_key_focus();
     }
 
-    /** Show confirmation; on confirm delete current goal and reset to Idle. */
-    _showDeleteGoalConfirm() {
-        const goal = this._goals.find(g => g.id === this._activeGoalId);
+    /** Show confirmation; on confirm delete goal by id and reset to Idle if it was active. */
+    _showDeleteGoalConfirm(goalId) {
+        const goal = this._goals.find(g => g.id === goalId);
         if (!goal) return;
         const dialog = new ModalDialog.ModalDialog({ destroyOnClose: true, styleClass: 'pomodorrr-dialog' });
         const msg = new St.Label({ text: `Delete goal "${goal.text}"?`, style_class: 'pomodorrr-dialog-label' });
@@ -221,11 +221,13 @@ export default class PomodorrrExtension extends Extension {
         dialog.setButtons([
             { label: 'Cancel', action: () => dialog.close(global.get_current_time()) },
             { label: 'Delete', action: () => {
-                this._goals = this._goals.filter(g => g.id !== this._activeGoalId);
-                delete this._pomodoros[this._activeGoalId];
-                this._activeGoalId = null;
-                this._clearTimer();
-                this._state = 'idle';
+                this._goals = this._goals.filter(g => g.id !== goalId);
+                delete this._pomodoros[goalId];
+                if (this._activeGoalId === goalId) {
+                    this._activeGoalId = null;
+                    this._clearTimer();
+                    this._state = 'idle';
+                }
                 this._saveGoals();
                 this._buildMenu();
                 this._render();
@@ -248,16 +250,17 @@ export default class PomodorrrExtension extends Extension {
         workSub.menu.addAction('New goal...', () => this._showAddGoalDialog(), 'list-add-symbolic');
 
         const today = this._getToday();
+        let firstGoal = true;
         for (const goal of this._goals) {
             if (goal.completed && goal.completedDate !== today) continue;
+            if (!firstGoal) workSub.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            firstGoal = false;
             const count = this._goalPomodorosToday(goal.id);
             const tomatoes = EMOJI_TOMATO.repeat(count);
             const check = goal.completed ? ` ${EMOJI_CHECK}` : '';
             const label = `${goal.text}  ${tomatoes}${check}`;
-            const item = new PopupMenu.PopupMenuItem(label);
-            if (goal.id === this._activeGoalId && goal.completed) item.setOrnament(PopupMenu.Ornament.CHECK);
-            item.connect('activate', () => {
-                if (goal.id === this._activeGoalId) {
+            const startWork = () => {
+                if (goal.id === this._activeGoalId && goal.completed) {
                     goal.completed = false;
                     goal.completedDate = null;
                     this._saveGoals();
@@ -267,31 +270,36 @@ export default class PomodorrrExtension extends Extension {
                 this._workRemainMin = WORK_DURATION_MIN;
                 this._startTick();
                 this._render();
-            });
-            workSub.menu.addMenuItem(item);
-        }
-
-        if (this._activeGoalId) {
-            workSub.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            workSub.menu.addAction('Mark current goal complete', () => {
-                const goal = this._goals.find(g => g.id === this._activeGoalId);
-                if (goal) {
-                    goal.completed = true;
-                    goal.completedDate = today;
-                    this._activeGoalId = null;
-                    this._saveGoals();
-                    this._buildMenu();
-                }
+            };
+            const goalItem = new PopupMenu.PopupMenuItem(label);
+            const icon = new St.Icon({ icon_name: 'media-playback-start-symbolic', style_class: 'popup-menu-icon' });
+            goalItem.actor.insert_child_at_index(icon, 0);
+            goalItem.connect('activate', startWork);
+            if (goal.id === this._activeGoalId && goal.completed) goalItem.actor.add_style_class_name('pomodorrr-goal-active');
+            workSub.menu.addMenuItem(goalItem);
+            workSub.menu.addAction('Complete', () => {
+                goal.completed = true;
+                goal.completedDate = today;
+                if (this._activeGoalId === goal.id) this._activeGoalId = null;
+                this._saveGoals();
+                this._buildMenu();
             }, 'emblem-ok-symbolic');
-            workSub.menu.addAction('Delete current goal', () => this._showDeleteGoalConfirm(), 'edit-delete-symbolic');
+            workSub.menu.addAction('Delete', () => this._showDeleteGoalConfirm(goal.id), 'edit-delete-symbolic');
         }
 
         this._indicator.menu.addMenuItem(workSub);
+        if (typeof workSub.setSubmenuShown === 'function') {
+            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                workSub.setSubmenuShown(true);
+                return false;
+            });
+        }
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         this._indicator.menu.addAction('Idle', () => {
             this._clearTimer();
             this._state = 'idle';
+            this._activeGoalId = null;
             this._render();
         }, 'media-playback-pause-symbolic');
 
@@ -366,6 +374,7 @@ export default class PomodorrrExtension extends Extension {
                 this._playSound('bell');
                 if (this._state === 'long_break') this._workDone = 0;
                 this._state = 'idle';
+                this._activeGoalId = null;
                 this._clearTimer();
             } else {
                 this._startTick();
