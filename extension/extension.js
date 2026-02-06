@@ -2,6 +2,7 @@
  * Pomodorrr – Pomodoro timer in the GNOME top bar with goals.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
  * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = active; click goal = start 25 min, click current = uncomplete), Idle/breaks/Exit.
+ * Copyright (c) 2026 Peter Adrianov. MIT License.
  */
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -328,13 +329,17 @@ export default class PomodorrrExtension extends Extension {
         this._indicator.menu.addAction('Exit', () => this._indicator.hide(), 'application-exit-symbolic');
     }
 
-    /** Schedule next tick: every WORK_TICK_MIN for work (or 1 min when ≤WORK_LAST_MINUTES remain), every BREAK_TICK_MIN for break. */
+    /** Schedule next tick: every WORK_TICK_MIN/BREAK_TICK_MIN normally, or 1 min when ≤WORK_LAST_MINUTES remain (work and breaks). */
     _startTick() {
         this._clearTimer();
         const isWork = this._state === 'work';
-        const workIntervalMin = isWork && this._workRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : (isWork ? WORK_TICK_MIN : BREAK_TICK_MIN);
-        const intervalSec = workIntervalMin * 60;
-        this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, intervalSec, () => this._tick());
+        let intervalMin;
+        if (isWork) {
+            intervalMin = this._workRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : WORK_TICK_MIN;
+        } else {
+            intervalMin = this._breakRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : BREAK_TICK_MIN;
+        }
+        this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, intervalMin * 60, () => this._tick());
     }
 
     /** Cancel the current work/break timeout. */
@@ -352,7 +357,7 @@ export default class PomodorrrExtension extends Extension {
         } catch {}
     }
 
-    /** One tick: decrement work or break time; on end, switch state and reschedule or stop. Last WORK_LAST_MINUTES of work tick by 1 min. */
+    /** One tick: decrement work or break time; on end, switch state and reschedule or stop. Last WORK_LAST_MINUTES of work/break tick by 1 min. */
     _tick() {
         if (this._state === 'work') {
             const step = this._workRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : WORK_TICK_MIN;
@@ -373,7 +378,8 @@ export default class PomodorrrExtension extends Extension {
             }
             this._startTick();
         } else {
-            this._breakRemainMin -= BREAK_TICK_MIN;
+            const step = this._breakRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : BREAK_TICK_MIN;
+            this._breakRemainMin -= step;
             if (this._breakRemainMin <= 0) {
                 this._playSound('bell');
                 if (this._state === 'long_break') this._workDone = 0;

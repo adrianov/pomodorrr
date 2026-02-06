@@ -27,7 +27,7 @@ First menu item; submenu opens expanded.
 - **Work or Study:** 🍅  
 - **Short/long break:** 🌴  
 
-Label format: `minutes · N` or `goal · minutes · N` (N = completed pomodoros today). In the last 5 minutes of a work session, the minutes value in the status bar updates every minute.
+Label format: `minutes · N` or `goal · minutes · N` (N = completed pomodoros today). In the last 5 minutes of a work session or break, the minutes value in the status bar updates every minute.
 
 ### Menu
 
@@ -97,6 +97,10 @@ With Node/npm installed:
 ```
 
 Or: `npm install && npm run lint`
+
+## License
+
+MIT. Copyright (c) 2026 Peter Adrianov.
 
 ## Project layout
 

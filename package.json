@@ -1,6 +1,7 @@
 {
   "name": "pomodorrr",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "lint": "eslint extension/extension.js"
   },
