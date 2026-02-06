@@ -396,13 +396,13 @@ export default class PomodorrrExtension extends Extension {
         return this._iconGoal;
     }
 
-    /** Label: optional goal title + timer/count. Idle: count only (no "0 ·"); work/break: "minutes · N". */
+    /** Label: optional goal title + timer/count. Idle: count only; work/break: "N min · count". */
     _labelTextForState() {
         const n = this._completedToday;
         let timePart;
         if (this._state === 'idle') timePart = String(n);
-        else if (this._state === 'work') timePart = `${this._workRemainMin} · ${n}`;
-        else timePart = `${this._breakRemainMin} · ${n}`;
+        else if (this._state === 'work') timePart = `${this._workRemainMin} min · ${n}`;
+        else timePart = `${this._breakRemainMin} min · ${n}`;
         const goal = this._goals.find(g => g.id === this._activeGoalId);
         const title = goal ? (goal.text.length > PANEL_GOAL_TITLE_MAX ? goal.text.slice(0, PANEL_GOAL_TITLE_MAX - 1) + '…' : goal.text) : '';
         return title ? `${title} · ${timePart}` : timePart;

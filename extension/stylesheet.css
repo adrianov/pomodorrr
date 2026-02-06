@@ -1,4 +1,4 @@
-/* Panel indicator: emoji icon and "minutes / N" label. */
+/* Panel indicator: emoji icon and "N min · count" label. */
 .pomodorrr-indicator {
   -natural-hpadding: 8px;
   -minimum-hpadding: 4px;
