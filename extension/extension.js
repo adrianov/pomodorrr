@@ -1,7 +1,7 @@
 /**
  * Pomodorrr – Pomodoro timer in the GNOME top bar with goals.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
- * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min, click current = uncomplete; Complete only for incomplete goals), Idle/breaks/Exit.
+ * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min, click current = uncomplete; Complete only for incomplete goals), breaks/Idle/Exit.
  * Copyright (c) 2026 Peter Adrianov. MIT License.
  */
 import St from 'gi://St';
@@ -239,7 +239,7 @@ export default class PomodorrrExtension extends Extension {
         dialog.open(global.get_current_time());
     }
 
-    /** Populate menu: Work or Study (submenu with New goal + goals; check = active), then Idle/breaks/Exit. */
+    /** Populate menu: Work or Study (submenu with New goal + goals; check = active), then breaks/Idle/Exit. */
     _buildMenu() {
         this._resetCompletedIfNewDay();
         this._pruneCompletedGoals();
@@ -300,13 +300,6 @@ export default class PomodorrrExtension extends Extension {
         }
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        this._indicator.menu.addAction('Idle', () => {
-            this._clearTimer();
-            this._state = 'idle';
-            this._activeGoalId = null;
-            this._render();
-        }, 'media-playback-pause-symbolic');
-
         this._indicator.menu.addAction('Short break (5 min)', () => {
             this._state = 'short_break';
             this._breakRemainMin = SHORT_BREAK_MIN;
@@ -320,6 +313,13 @@ export default class PomodorrrExtension extends Extension {
             this._startTick();
             this._render();
         }, 'weather-clear-symbolic');
+
+        this._indicator.menu.addAction('Idle', () => {
+            this._clearTimer();
+            this._state = 'idle';
+            this._activeGoalId = null;
+            this._render();
+        }, 'media-playback-pause-symbolic');
 
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
