@@ -31,7 +31,7 @@ Label format: `minutes · N` or `goal · minutes · N` (N = completed pomodoros 
 
 ### Menu
 
-Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit.
+Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), Completed today: N, Exit. After every third pomodoro completed today the extension automatically starts a 15-minute long break; otherwise it uses a 5-minute short break.
 
 ### Sounds
 

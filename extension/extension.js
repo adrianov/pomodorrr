@@ -21,8 +21,6 @@ const WORK_LAST_MINUTES = 5;
 const WORK_TICK_LAST_MIN = 1;
 const SHORT_BREAK_MIN = 5;
 const LONG_BREAK_MIN = 15;
-/** After this many work sessions, next break is long. */
-const SESSIONS_BEFORE_LONG = 3;
 /** Break countdown tick interval (minutes); display 15 → 10 → 5 → 0. */
 const BREAK_TICK_MIN = 5;
 /** Max goal title length in panel; longer titles get truncated with ellipsis. */
@@ -46,7 +44,6 @@ export default class PomodorrrExtension extends Extension {
     /** Create panel indicator, menu, and load persisted state and goals. */
     enable() {
         this._state = 'idle';
-        this._workDone = 0;
         this._workRemainMin = WORK_DURATION_MIN;
         this._breakRemainMin = 0;
         this._timerId = 0;
@@ -364,7 +361,6 @@ export default class PomodorrrExtension extends Extension {
             this._workRemainMin -= step;
             if (this._workRemainMin <= 0) {
                 this._playSound('complete');
-                this._workDone += 1;
                 this._completedToday += 1;
                 if (this._activeGoalId) {
                     const today = this._getToday();
@@ -373,7 +369,7 @@ export default class PomodorrrExtension extends Extension {
                     this._saveGoals();
                 }
                 this._saveState();
-                this._state = this._workDone >= SESSIONS_BEFORE_LONG ? 'long_break' : 'short_break';
+                this._state = this._completedToday % 3 === 0 ? 'long_break' : 'short_break';
                 this._breakRemainMin = this._state === 'long_break' ? LONG_BREAK_MIN : SHORT_BREAK_MIN;
             }
             this._startTick();
@@ -382,7 +378,6 @@ export default class PomodorrrExtension extends Extension {
             this._breakRemainMin -= step;
             if (this._breakRemainMin <= 0) {
                 this._playSound('bell');
-                if (this._state === 'long_break') this._workDone = 0;
                 this._state = 'idle';
                 this._activeGoalId = null;
                 this._clearTimer();
