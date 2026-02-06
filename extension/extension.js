@@ -123,14 +123,13 @@ export default class PomodorrrExtension extends Extension {
         } catch {}
     }
 
-    /** Zero completed-today and update _lastDate when date changes. */
+    /** Zero completed-today and update _lastDate when date changes. Only reset count when we had a previous stored date (day rollover); when _lastDate is null, set date and keep current count so task-finish increment is not wiped. */
     _resetCompletedIfNewDay() {
         const today = GLib.DateTime.new_now_local().format('%Y-%m-%d');
-        if (this._lastDate !== today) {
-            this._completedToday = 0;
-            this._lastDate = today;
-            this._saveState();
-        }
+        if (this._lastDate === today) return;
+        if (this._lastDate !== null) this._completedToday = 0;
+        this._lastDate = today;
+        this._saveState();
     }
 
     _getGoalsPath() {
@@ -391,12 +390,13 @@ export default class PomodorrrExtension extends Extension {
         return this._iconGoal;
     }
 
-    /** Label: optional goal title + "minutes / N" (N = completed today). */
+    /** Label: optional goal title + timer/count. Idle: count only (no "0 ·"); work/break: "minutes · N". */
     _labelTextForState() {
         const n = this._completedToday;
-        let timePart = `0 / ${n}`;
-        if (this._state === 'work') timePart = `${this._workRemainMin} / ${n}`;
-        else if (this._state === 'short_break' || this._state === 'long_break') timePart = `${this._breakRemainMin} / ${n}`;
+        let timePart;
+        if (this._state === 'idle') timePart = String(n);
+        else if (this._state === 'work') timePart = `${this._workRemainMin} · ${n}`;
+        else timePart = `${this._breakRemainMin} · ${n}`;
         const goal = this._goals.find(g => g.id === this._activeGoalId);
         const title = goal ? (goal.text.length > PANEL_GOAL_TITLE_MAX ? goal.text.slice(0, PANEL_GOAL_TITLE_MAX - 1) + '…' : goal.text) : '';
         return title ? `${title} · ${timePart}` : timePart;
