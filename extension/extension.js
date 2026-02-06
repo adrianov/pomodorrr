@@ -177,36 +177,51 @@ export default class PomodorrrExtension extends Extension {
         return (this._pomodoros[goalId] && this._pomodoros[goalId][today]) || 0;
     }
 
-    /** Show dialog to add a new goal; on Add, save and rebuild menu. */
+    /** Show dialog to add a new goal; on Add, save and rebuild menu. Enter submits when title not empty. "Start now" checked by default when no current goal. */
     _showAddGoalDialog() {
         const dialog = new ModalDialog.ModalDialog({ destroyOnClose: true, styleClass: 'pomodorrr-dialog' });
         const box = new St.BoxLayout({ vertical: true });
         box.add_child(new St.Label({ text: 'Goal name', style_class: 'pomodorrr-dialog-label' }));
         const entry = new St.Entry({ can_focus: true });
         box.add_child(entry);
+        const startNowRow = new St.BoxLayout();
+        const startNowCheck = new St.CheckBox({ style_class: 'pomodorrr-dialog-check' });
+        startNowCheck.checked = this._activeGoalId === null;
+        startNowRow.add_child(startNowCheck);
+        startNowRow.add_child(new St.Label({ text: 'Start now', style_class: 'pomodorrr-dialog-label' }));
+        box.add_child(startNowRow);
         dialog.contentLayout.add_child(box);
+        const doAdd = () => {
+            const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
+            const text = String(raw).trim();
+            if (text) {
+                const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                this._goals.push({ id, text, completed: false, completedDate: null });
+                this._saveGoals();
+                const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
+                if (startNowCheck.checked && !otherWorkActive) {
+                    this._activeGoalId = id;
+                    this._state = 'work';
+                    this._workRemainMin = WORK_DURATION_MIN;
+                    this._startTick();
+                    this._render();
+                }
+                this._buildMenu();
+            }
+            dialog.close(global.get_current_time());
+        };
         dialog.setButtons([
             { label: 'Cancel', action: () => dialog.close(global.get_current_time()) },
-            { label: 'Add', isDefault: true, action: () => {
-                const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
-                const text = String(raw).trim();
-                if (text) {
-                    const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                    this._goals.push({ id, text, completed: false, completedDate: null });
-                    this._saveGoals();
-                    const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
-                    if (!otherWorkActive) {
-                        this._activeGoalId = id;
-                        this._state = 'work';
-                        this._workRemainMin = WORK_DURATION_MIN;
-                        this._startTick();
-                        this._render();
-                    }
-                    this._buildMenu();
-                }
-                dialog.close(global.get_current_time());
-            } }
+            { label: 'Add', isDefault: true, action: doAdd }
         ]);
+        entry.connect('key-press-event', (_actor, event) => {
+            const key = event.get_key_symbol();
+            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter) {
+                doAdd();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
         dialog.open(global.get_current_time());
         if (entry.grab_key_focus) entry.grab_key_focus();
     }
@@ -302,6 +317,7 @@ export default class PomodorrrExtension extends Extension {
 
         this._indicator.menu.addAction('Short break (5 min)', () => {
             this._state = 'short_break';
+            this._activeGoalId = null;
             this._breakRemainMin = SHORT_BREAK_MIN;
             this._startTick();
             this._render();
@@ -309,6 +325,7 @@ export default class PomodorrrExtension extends Extension {
 
         this._indicator.menu.addAction('Long break (15 min)', () => {
             this._state = 'long_break';
+            this._activeGoalId = null;
             this._breakRemainMin = LONG_BREAK_MIN;
             this._startTick();
             this._render();
@@ -374,6 +391,7 @@ export default class PomodorrrExtension extends Extension {
                 }
                 this._saveState();
                 this._state = this._completedToday % 3 === 0 ? 'long_break' : 'short_break';
+                this._activeGoalId = null;
                 this._breakRemainMin = this._state === 'long_break' ? LONG_BREAK_MIN : SHORT_BREAK_MIN;
             }
             this._startTick();

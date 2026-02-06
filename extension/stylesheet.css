@@ -17,6 +17,11 @@
   margin-bottom: 4px;
 }
 
+.pomodorrr-dialog-check {
+  margin-top: 8px;
+  margin-right: 6px;
+}
+
 /* Informational menu item (e.g. Completed today): readable, not grayed out. */
 .pomodorrr-info {
   font-size: 0.9em;
