@@ -15,6 +15,9 @@ import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 /** Work session length and tick interval (minutes). */
 const WORK_DURATION_MIN = 25;
 const WORK_TICK_MIN = 5;
+/** When this many minutes or less remain, status bar updates every minute. */
+const WORK_LAST_MINUTES = 5;
+const WORK_TICK_LAST_MIN = 1;
 const SHORT_BREAK_MIN = 5;
 const LONG_BREAK_MIN = 15;
 /** After this many work sessions, next break is long. */
@@ -325,11 +328,12 @@ export default class PomodorrrExtension extends Extension {
         this._indicator.menu.addAction('Exit', () => this._indicator.hide(), 'application-exit-symbolic');
     }
 
-    /** Schedule next tick: every WORK_TICK_MIN for work, every BREAK_TICK_MIN for break (15→10→5→0). */
+    /** Schedule next tick: every WORK_TICK_MIN for work (or 1 min when ≤WORK_LAST_MINUTES remain), every BREAK_TICK_MIN for break. */
     _startTick() {
         this._clearTimer();
         const isWork = this._state === 'work';
-        const intervalSec = (isWork ? WORK_TICK_MIN : BREAK_TICK_MIN) * 60;
+        const workIntervalMin = isWork && this._workRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : (isWork ? WORK_TICK_MIN : BREAK_TICK_MIN);
+        const intervalSec = workIntervalMin * 60;
         this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, intervalSec, () => this._tick());
     }
 
@@ -348,10 +352,11 @@ export default class PomodorrrExtension extends Extension {
         } catch {}
     }
 
-    /** One tick: decrement work or break time; on end, switch state and reschedule or stop. */
+    /** One tick: decrement work or break time; on end, switch state and reschedule or stop. Last WORK_LAST_MINUTES of work tick by 1 min. */
     _tick() {
         if (this._state === 'work') {
-            this._workRemainMin -= WORK_TICK_MIN;
+            const step = this._workRemainMin <= WORK_LAST_MINUTES ? WORK_TICK_LAST_MIN : WORK_TICK_MIN;
+            this._workRemainMin -= step;
             if (this._workRemainMin <= 0) {
                 this._playSound('complete');
                 this._workDone += 1;
