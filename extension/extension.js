@@ -1,12 +1,13 @@
 /**
  * Pomodorrr – Pomodoro timer in the GNOME top bar with goals.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
- * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min, click current = uncomplete; Complete only for incomplete goals), breaks/Idle/Exit.
+ * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min; selecting completed goal uncompletes it; Complete only for incomplete goals; completing current goal resets to Idle), breaks/Idle/Exit.
  * Copyright (c) 2026 Peter Adrianov. MIT License.
  */
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import Atk from 'gi://Atk';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -187,10 +188,35 @@ export default class PomodorrrExtension extends Extension {
         const startNowRow = new St.BoxLayout();
         let startNow = this._activeGoalId === null;
         const checkLabel = new St.Label({ text: startNow ? '☑ Start now' : '☐ Start now', style_class: 'pomodorrr-dialog-label' });
-        const checkBtn = new St.Button({ child: checkLabel, style_class: 'pomodorrr-dialog-check-btn' });
+        const checkBtn = new St.Button({ child: checkLabel, style_class: 'pomodorrr-dialog-check-btn', can_focus: true });
+        const updateToggle = () => {
+            checkLabel.text = startNow ? '☑ Start now' : '☐ Start now';
+            const atk = checkBtn.get_accessible();
+            if (atk) {
+                const set = atk.get_state_set();
+                if (startNow) set.add_state(Atk.StateType.CHECKED);
+                else set.remove_state(Atk.StateType.CHECKED);
+            }
+        };
+        try {
+            const atk = checkBtn.get_accessible();
+            if (atk) {
+                atk.set_role(Atk.Role.CHECK_BOX);
+                if (startNow) atk.get_state_set().add_state(Atk.StateType.CHECKED);
+            }
+        } catch {}
         checkBtn.connect('clicked', () => {
             startNow = !startNow;
-            checkLabel.text = startNow ? '☑ Start now' : '☐ Start now';
+            updateToggle();
+        });
+        checkBtn.connect('key-press-event', (_actor, event) => {
+            const key = event.get_key_symbol();
+            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter || key === Clutter.KEY_space) {
+                startNow = !startNow;
+                updateToggle();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
         });
         startNowRow.add_child(checkBtn);
         box.add_child(startNowRow);
@@ -272,7 +298,7 @@ export default class PomodorrrExtension extends Extension {
 
         const today = this._getToday();
         let firstGoal = true;
-        for (const goal of this._goals) {
+        for (const goal of [...this._goals].reverse()) {
             if (goal.completed && goal.completedDate !== today) continue;
             if (!firstGoal) workSub.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             firstGoal = false;
@@ -281,7 +307,7 @@ export default class PomodorrrExtension extends Extension {
             const check = goal.completed ? ` ${EMOJI_CHECK}` : '';
             const label = `${goal.text}  ${tomatoes}${check}`;
             const startWork = () => {
-                if (goal.id === this._activeGoalId && goal.completed) {
+                if (goal.completed) {
                     goal.completed = false;
                     goal.completedDate = null;
                     this._saveGoals();
@@ -302,7 +328,13 @@ export default class PomodorrrExtension extends Extension {
                 workSub.menu.addAction('Complete', () => {
                     goal.completed = true;
                     goal.completedDate = today;
-                    if (this._activeGoalId === goal.id) this._activeGoalId = null;
+                    if (this._activeGoalId === goal.id) {
+                        this._activeGoalId = null;
+                        this._state = 'idle';
+                        this._clearTimer();
+                        this._saveState();
+                        this._render();
+                    }
                     this._saveGoals();
                     this._buildMenu();
                 }, 'emblem-ok-symbolic');
