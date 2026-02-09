@@ -185,10 +185,14 @@ export default class PomodorrrExtension extends Extension {
         const entry = new St.Entry({ can_focus: true });
         box.add_child(entry);
         const startNowRow = new St.BoxLayout();
-        const startNowCheck = new St.CheckBox({ style_class: 'pomodorrr-dialog-check' });
-        startNowCheck.checked = this._activeGoalId === null;
-        startNowRow.add_child(startNowCheck);
-        startNowRow.add_child(new St.Label({ text: 'Start now', style_class: 'pomodorrr-dialog-label' }));
+        let startNow = this._activeGoalId === null;
+        const checkLabel = new St.Label({ text: startNow ? '☑ Start now' : '☐ Start now', style_class: 'pomodorrr-dialog-label' });
+        const checkBtn = new St.Button({ child: checkLabel, style_class: 'pomodorrr-dialog-check-btn' });
+        checkBtn.connect('clicked', () => {
+            startNow = !startNow;
+            checkLabel.text = startNow ? '☑ Start now' : '☐ Start now';
+        });
+        startNowRow.add_child(checkBtn);
         box.add_child(startNowRow);
         dialog.contentLayout.add_child(box);
         const doAdd = () => {
@@ -199,7 +203,7 @@ export default class PomodorrrExtension extends Extension {
                 this._goals.push({ id, text, completed: false, completedDate: null });
                 this._saveGoals();
                 const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
-                if (startNowCheck.checked && !otherWorkActive) {
+                if (startNow && !otherWorkActive) {
                     this._activeGoalId = id;
                     this._state = 'work';
                     this._workRemainMin = WORK_DURATION_MIN;
