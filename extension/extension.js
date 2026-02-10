@@ -315,9 +315,16 @@ export default class PomodorrrExtension extends Extension {
                     this._saveGoals();
                 }
                 this._activeGoalId = goal.id;
+                const idx = this._goals.findIndex(g => g.id === goal.id);
+                if (idx >= 0) {
+                    this._goals.splice(idx, 1);
+                    this._goals.push(goal);
+                    this._saveGoals();
+                }
                 this._state = 'work';
                 this._workRemainMin = WORK_DURATION_MIN;
                 this._startTick();
+                this._buildMenu();
                 this._render();
             };
             const goalItem = new PopupMenu.PopupMenuItem(label);

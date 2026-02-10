@@ -17,7 +17,7 @@ The method was created by Francesco Cirillo in the late 1980s. As a student, he 
 First menu item; submenu opens expanded.
 
 - **New goal…** — Add a goal. If you're idle (or not in work with another goal), the new goal becomes active and a 25 min work session starts.
-- Each goal has a row (▶ + label + 🍅 count + ✓ if completed): click to start 25 min work (or un-complete if it was completed). Below it: **Complete** and **Delete** with icons.
+- Each goal has a row (▶ + label + 🍅 count + ✓ if completed): click to start 25 min work (or un-complete if it was completed). The selected goal moves to the top of the list. Below it: **Complete** and **Delete** with icons.
 - Completed goals are cleared the next day.
 - The panel shows the active goal title (truncated) and the timer.
 
