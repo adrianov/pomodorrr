@@ -1,7 +1,7 @@
 /**
  * Pomodorrr – Pomodoro timer in the GNOME top bar with goals.
  * States: idle (goal) → work (tomato) → short/long break (palm) → idle.
- * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min; selecting completed goal uncompletes it; Complete only for incomplete goals; completing current goal resets to Idle), breaks/Idle/Exit.
+ * Menu: Work or Study (25 min) submenu (uncollapsed; New goal…, today’s goals; check = completed; click goal = start 25 min; selecting completed goal uncompletes it; Complete only for incomplete goals; completing current goal does not stop session—idle only via timer end or Idle), breaks/Idle/Exit.
  * Copyright (c) 2026 Peter Adrianov. MIT License.
  */
 import St from 'gi://St';
@@ -244,16 +244,18 @@ export default class PomodorrrExtension extends Extension {
             { label: 'Cancel', action: () => dialog.close(global.get_current_time()) },
             { label: 'Add', isDefault: true, action: doAdd }
         ]);
-        entry.connect('key-press-event', (_actor, event) => {
+        const onEnter = (event) => {
             const key = event.get_key_symbol();
             if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter) {
                 doAdd();
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
-        });
+        };
+        entry.connect('key-press-event', (_actor, event) => onEnter(event));
+        dialog.contentLayout.connect('key-press-event', (_actor, event) => onEnter(event));
         dialog.open(global.get_current_time());
-        if (entry.grab_key_focus) entry.grab_key_focus();
+        GLib.timeout_add(0, () => { entry.grab_key_focus?.(); });
     }
 
     /** Show confirmation; on confirm delete goal by id and reset to Idle if it was active. */
@@ -328,15 +330,9 @@ export default class PomodorrrExtension extends Extension {
                 workSub.menu.addAction('Complete', () => {
                     goal.completed = true;
                     goal.completedDate = today;
-                    if (this._activeGoalId === goal.id) {
-                        this._activeGoalId = null;
-                        this._state = 'idle';
-                        this._clearTimer();
-                        this._saveState();
-                        this._render();
-                    }
                     this._saveGoals();
                     this._buildMenu();
+                    if (this._activeGoalId === goal.id) this._render();
                 }, 'emblem-ok-symbolic');
             }
             workSub.menu.addAction('Delete', () => this._showDeleteGoalConfirm(goal.id), 'edit-delete-symbolic');
