@@ -51,7 +51,7 @@ Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), 
    ```
 
 2. **Restart GNOME Shell** so it picks up the extension (extensions are discovered only at startup):
-   - **Wayland**: Log out and log back in.
+   - **Wayland**: Log out and log back in. From a terminal: `gnome-session-quit --logout --no-prompt`
    - **X11**: Alt+F2, type `r`, Enter.
 
 3. **Enable** the extension (from a terminal on your desktop):
