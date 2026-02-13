@@ -187,6 +187,25 @@ export default class PomodorrrExtension extends Extension {
         box.add_child(entry);
         const startNowRow = new St.BoxLayout();
         let startNow = this._activeGoalId === null;
+        const doAdd = () => {
+            const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
+            const text = String(raw).trim();
+            if (text) {
+                const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                this._goals.push({ id, text, completed: false, completedDate: null });
+                this._saveGoals();
+                const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
+                if (startNow && !otherWorkActive) {
+                    this._activeGoalId = id;
+                    this._state = 'work';
+                    this._workRemainMin = WORK_DURATION_MIN;
+                    this._startTick();
+                    this._render();
+                }
+                this._buildMenu();
+            }
+            dialog.close(global.get_current_time());
+        };
         const checkLabel = new St.Label({ text: startNow ? '☑ Start now' : '☐ Start now', style_class: 'pomodorrr-dialog-label' });
         const checkBtn = new St.Button({ child: checkLabel, style_class: 'pomodorrr-dialog-check-btn', can_focus: true });
         const updateToggle = () => {
@@ -211,9 +230,14 @@ export default class PomodorrrExtension extends Extension {
         });
         checkBtn.connect('key-press-event', (_actor, event) => {
             const key = event.get_key_symbol();
-            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter || key === Clutter.KEY_space) {
+            if (key === Clutter.KEY_space) {
                 startNow = !startNow;
                 updateToggle();
+                return Clutter.EVENT_STOP;
+            }
+            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter) {
+                const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
+                if (String(raw).trim()) doAdd();
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -221,41 +245,22 @@ export default class PomodorrrExtension extends Extension {
         startNowRow.add_child(checkBtn);
         box.add_child(startNowRow);
         dialog.contentLayout.add_child(box);
-        const doAdd = () => {
-            const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
-            const text = String(raw).trim();
-            if (text) {
-                const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                this._goals.push({ id, text, completed: false, completedDate: null });
-                this._saveGoals();
-                const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
-                if (startNow && !otherWorkActive) {
-                    this._activeGoalId = id;
-                    this._state = 'work';
-                    this._workRemainMin = WORK_DURATION_MIN;
-                    this._startTick();
-                    this._render();
-                }
-                this._buildMenu();
-            }
-            dialog.close(global.get_current_time());
-        };
         dialog.setButtons([
             { label: 'Cancel', action: () => dialog.close(global.get_current_time()) },
             { label: 'Add', isDefault: true, action: doAdd }
         ]);
         const onEnter = (event) => {
-            const key = event.get_key_symbol();
-            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter) {
-                doAdd();
-                return Clutter.EVENT_STOP;
-            }
-            return Clutter.EVENT_PROPAGATE;
+            if (event.get_key_symbol() !== Clutter.KEY_Return && event.get_key_symbol() !== Clutter.KEY_KP_Enter)
+                return Clutter.EVENT_PROPAGATE;
+            const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
+            if (!String(raw).trim()) return Clutter.EVENT_STOP;
+            doAdd();
+            return Clutter.EVENT_STOP;
         };
-        entry.connect('key-press-event', (_actor, event) => onEnter(event));
+        entry.clutter_text.connect('key-press-event', (_actor, event) => onEnter(event));
         dialog.contentLayout.connect('key-press-event', (_actor, event) => onEnter(event));
         dialog.open(global.get_current_time());
-        GLib.timeout_add(0, () => { entry.grab_key_focus?.(); });
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => { entry.grab_key_focus?.(); return GLib.SOURCE_REMOVE; });
     }
 
     /** Show confirmation; on confirm delete goal by id and reset to Idle if it was active. */
