@@ -336,7 +336,7 @@ export default class PomodorrrExtension extends Extension {
             const icon = new St.Icon({ icon_name: 'media-playback-start-symbolic', style_class: 'popup-menu-icon' });
             goalItem.actor.insert_child_at_index(icon, 0);
             goalItem.connect('activate', startWork);
-            if (goal.id === this._activeGoalId && goal.completed) goalItem.actor.add_style_class_name('pomodorrr-goal-active');
+            if (goal.id === this._activeGoalId) goalItem.actor.add_style_class_name('pomodorrr-active');
             workSub.menu.addMenuItem(goalItem);
             if (!goal.completed) {
                 workSub.menu.addAction('Complete', () => {
@@ -359,28 +359,40 @@ export default class PomodorrrExtension extends Extension {
         }
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        this._indicator.menu.addAction('Short break (5 min)', () => {
+        const shortBreakItem = new PopupMenu.PopupMenuItem('Short break (5 min)');
+        shortBreakItem.actor.insert_child_at_index(new St.Icon({ icon_name: 'alarm-symbolic', style_class: 'popup-menu-icon' }), 0);
+        if (this._state === 'short_break') shortBreakItem.actor.add_style_class_name('pomodorrr-active');
+        shortBreakItem.connect('activate', () => {
             this._state = 'short_break';
             this._activeGoalId = null;
             this._breakRemainMin = SHORT_BREAK_MIN;
             this._startTick();
             this._render();
-        }, 'alarm-symbolic');
+        });
+        this._indicator.menu.addMenuItem(shortBreakItem);
 
-        this._indicator.menu.addAction('Long break (15 min)', () => {
+        const longBreakItem = new PopupMenu.PopupMenuItem('Long break (15 min)');
+        longBreakItem.actor.insert_child_at_index(new St.Icon({ icon_name: 'weather-clear-symbolic', style_class: 'popup-menu-icon' }), 0);
+        if (this._state === 'long_break') longBreakItem.actor.add_style_class_name('pomodorrr-active');
+        longBreakItem.connect('activate', () => {
             this._state = 'long_break';
             this._activeGoalId = null;
             this._breakRemainMin = LONG_BREAK_MIN;
             this._startTick();
             this._render();
-        }, 'weather-clear-symbolic');
+        });
+        this._indicator.menu.addMenuItem(longBreakItem);
 
-        this._indicator.menu.addAction('Idle', () => {
+        const idleItem = new PopupMenu.PopupMenuItem('Idle');
+        idleItem.actor.insert_child_at_index(new St.Icon({ icon_name: 'media-playback-pause-symbolic', style_class: 'popup-menu-icon' }), 0);
+        if (this._state === 'idle') idleItem.actor.add_style_class_name('pomodorrr-active');
+        idleItem.connect('activate', () => {
             this._clearTimer();
             this._state = 'idle';
             this._activeGoalId = null;
             this._render();
-        }, 'media-playback-pause-symbolic');
+        });
+        this._indicator.menu.addMenuItem(idleItem);
 
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
