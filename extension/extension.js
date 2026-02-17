@@ -202,9 +202,12 @@ export default class PomodorrrExtension extends Extension {
                     this._startTick();
                     this._render();
                 }
+                dialog.close(global.get_current_time());
                 this._buildMenu();
+                this._reopenMenu();
+            } else {
+                dialog.close(global.get_current_time());
             }
-            dialog.close(global.get_current_time());
         };
         const checkLabel = new St.Label({ text: startNow ? '☑ Start now' : '☐ Start now', style_class: 'pomodorrr-dialog-label' });
         const checkBtn = new St.Button({ child: checkLabel, style_class: 'pomodorrr-dialog-check-btn', can_focus: true });
@@ -282,13 +285,22 @@ export default class PomodorrrExtension extends Extension {
                     this._state = 'idle';
                 }
                 this._saveGoals();
-                this._buildMenu();
-                // Only refresh panel when deleted goal was active; avoid resetting status bar title for other tasks.
-                if (wasActive) this._render();
                 dialog.close(global.get_current_time());
+                this._buildMenu();
+                this._reopenMenu();
+                if (wasActive) this._render();
             } }
         ]);
         dialog.open(global.get_current_time());
+    }
+
+    /** Schedule menu to open on next idle (after it has closed). Used after Complete, Delete, New Goal. */
+    _reopenMenu() {
+        GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            if (this._indicator?.menu && typeof this._indicator.menu.open === 'function')
+                this._indicator.menu.open(true);
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     /** Populate menu: Work or Study (submenu with New goal + goals; check = active), then breaks/Idle/Exit. */
@@ -329,7 +341,6 @@ export default class PomodorrrExtension extends Extension {
                 this._state = 'work';
                 this._workRemainMin = WORK_DURATION_MIN;
                 this._startTick();
-                this._buildMenu();
                 this._render();
             };
             const goalItem = new PopupMenu.PopupMenuItem(label);
@@ -344,6 +355,7 @@ export default class PomodorrrExtension extends Extension {
                     goal.completedDate = today;
                     this._saveGoals();
                     this._buildMenu();
+                    this._reopenMenu();
                     if (this._activeGoalId === goal.id) this._render();
                 }, 'emblem-ok-symbolic');
             }
