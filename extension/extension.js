@@ -82,10 +82,23 @@ export default class PomodorrrExtension extends Extension {
         this._buildMenu();
         Main.panel.addToStatusArea(this.uuid, this._indicator);
         this._render();
+        this._startDailyReset();
+    }
+
+    /** Hourly check so the idle panel label resets at midnight even without user interaction. */
+    _startDailyReset() {
+        this._dailyResetId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 3600, () => {
+            this._render();
+            return GLib.SOURCE_CONTINUE;
+        });
     }
 
     /** Remove timer and UI; called on disable or uninstall. */
     disable() {
+        if (this._dailyResetId) {
+            GLib.source_remove(this._dailyResetId);
+            this._dailyResetId = 0;
+        }
         this._clearTimer();
         this._indicator?.destroy();
         this._indicator = null;
