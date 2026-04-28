@@ -77,7 +77,7 @@ Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), 
 To test without logging out on Wayland:
 
 ```sh
-dbus-run-session gnome-shell --devkit --wayland
+dbus-run-session gnome-shell --wayland --nested
 ```
 
 In the nested session, open a terminal and run:
