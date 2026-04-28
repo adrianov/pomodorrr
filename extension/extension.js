@@ -207,8 +207,7 @@ export default class PomodorrrExtension extends Extension {
                 const id = GLib.uuid_string_random ? GLib.uuid_string_random() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
                 this._goals.push({ id, text, completed: false, completedDate: null });
                 this._saveGoals();
-                const otherWorkActive = this._state === 'work' && this._activeGoalId !== null;
-                if (startNow && !otherWorkActive) {
+                if (startNow) {
                     this._activeGoalId = id;
                     this._state = 'work';
                     this._workRemainMin = WORK_DURATION_MIN;
