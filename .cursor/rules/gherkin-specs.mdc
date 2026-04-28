@@ -1,0 +1,26 @@
+---
+description: Save Gherkin specs before fixing bugs or implementing features
+alwaysApply: true
+---
+
+# Gherkin Specs First
+
+Before fixing a bug or implementing a feature, write Gherkin scenarios in `specs/` that describe the expected behavior.
+
+## Format
+
+```gherkin
+Feature: <feature name>
+
+  Scenario: <scenario name>
+    Given <precondition>
+    When <action>
+    Then <expected outcome>
+```
+
+## Rules
+
+- Place specs in `specs/<feature-name>.feature`
+- Cover the happy path and key edge cases
+- Scenarios must reflect actual user-observable behavior, not implementation details
+- Commit the spec file before writing any code
