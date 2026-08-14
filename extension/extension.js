@@ -191,7 +191,7 @@ export default class PomodorrrExtension extends Extension {
         return (this._pomodoros[goalId] && this._pomodoros[goalId][today]) || 0;
     }
 
-    /** Show dialog to add a new goal; on Add, save and rebuild menu. Enter submits when title not empty. "Start now" checked by default when no current goal. */
+    /** Show dialog to add a new goal; on Add, save and rebuild menu. Enter submits when title not empty. "Start now" checked by default when idle (not during a break or with a selected goal). */
     _showAddGoalDialog() {
         const dialog = new ModalDialog.ModalDialog({ destroyOnClose: true, styleClass: 'pomodorrr-dialog' });
         const box = new St.BoxLayout({ vertical: true });
@@ -199,7 +199,7 @@ export default class PomodorrrExtension extends Extension {
         const entry = new St.Entry({ can_focus: true });
         box.add_child(entry);
         const startNowRow = new St.BoxLayout();
-        let startNow = this._activeGoalId === null;
+        let startNow = this._state === 'idle';
         const doAdd = () => {
             const raw = entry.get_text ? entry.get_text() : (entry.text ?? '');
             const text = String(raw).trim();
