@@ -16,7 +16,7 @@ The method was created by Francesco Cirillo in the late 1980s. As a student, he 
 
 First menu item; submenu opens expanded.
 
-- **New goal…** — Add a goal. If you're idle (or not in work with another goal), the new goal becomes active and a 25 min work session starts.
+- **New goal…** — Add a goal. **Start now** is checked when idle, so the new goal becomes active and a 25 min work session starts. It is unchecked when a goal is already selected or a break is in progress.
 - Each goal has a row (▶ + label + 🍅 count + ✓ if completed): click to start 25 min work (or un-complete if it was completed). The selected goal moves to the top of the list. Below it: **Complete** and **Delete** with icons.
 - Completed goals are cleared the next day.
 - The panel shows the active goal title (truncated) and the timer.
@@ -63,6 +63,13 @@ Work or Study (25 min) submenu, Idle, Short break (5 min), Long break (15 min), 
    If you see **"Extension does not exist"**, GNOME Shell has not been restarted since install. Do step 2, then run the enable command again.
 
    If the extension **was disabled due to an error** (e.g. after a crash), restart GNOME Shell (step 2) so it loads the updated code, then run `gnome-extensions enable pomodorrr@local` again.
+
+   A crash can switch off all user extensions. If the indicator is missing after login, restore them:
+
+   ```sh
+   gsettings get org.gnome.shell disable-user-extensions
+   gsettings set org.gnome.shell disable-user-extensions false
+   ```
 
 4. The indicator appears in the top bar. Click it to open the menu.
 
