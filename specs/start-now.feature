@@ -10,3 +10,13 @@ Feature: Start new goal immediately
     Given a pomodoro session is running for goal "Write tests"
     When the user opens the new goal dialog
     Then the "Start now" checkbox is unchecked
+
+  Scenario: Start now is unchecked by default during a break
+    Given a short or long break is in progress
+    When the user opens the new goal dialog
+    Then the "Start now" checkbox is unchecked
+
+  Scenario: Start now is checked by default when idle
+    Given the timer is idle
+    When the user opens the new goal dialog
+    Then the "Start now" checkbox is checked
